@@ -2,12 +2,6 @@ Array.prototype.asQueryable = function () {
     return new Queryable(this);
 }
 
-Object.prototype.getHashCode = function () {
-    var stringify = JSON.stringify(this);
-    return stringify;
-}
-
-
 function AggregateQueryProvider() {
     var context = this;
     this.compile = function (input, expression, type) {
