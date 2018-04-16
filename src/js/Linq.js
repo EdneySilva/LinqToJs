@@ -1,3 +1,8 @@
+Object.prototype.getHashCode = function () {
+    var stringify = JSON.stringify(this);
+    return stringify;
+}
+
 
 function AggregateQueryProvider() {
     var context = this;
@@ -97,6 +102,34 @@ function GroupByQueryProvider() {
     return {
         compile: this.compile
     }
+}
+
+function JoinQueryProvider() {
+
+    var context = this;
+
+    this.compare = function (a, b) {
+ 
+        return true;
+    }
+
+    this.compile = function (input, expression) {
+        if (expression.inner.length == 0 || input.length == 0)
+            return [];
+        var result = [];
+        for (var i in input) {
+            var outerKey = expression.outerKeySelector(input[i]);
+            result = result.concat(expression.inner.filter(function (value) {
+                return context.compare(outerKey, expression.innerKeySelector(value));
+            }).map(function (value) {
+                return expression.resultSelector(input[i], value);
+            }));
+        }
+        return result;
+    }
+    return {
+        compile: this.compile
+    };
 }
 
 function LastQueryProvider() {
@@ -267,6 +300,32 @@ function WhereQueryProvider() {
     };
 }
 
+function UnionQueryProvider() {
+
+    var context = this;
+
+    this.compare = function (a, b) {
+        if (typeof a != typeof b)
+            return false;
+        for (var i in a) {
+            if (b[i] === undefined)
+                return false;
+        }
+        return true;
+    }
+
+    this.compile = function (input, expression) {
+        if (expression.length == 0)
+            return input;
+        if (input.length > 0 && !context.compare(input[0], expression[0]))
+            throw "The collection types is not equal";
+        return input.concat(expression);
+    }
+    return {
+        compile: this.compile
+    };
+}
+
 (function () {
     window.queryProviderCache = (function () {
         var providers = {};
@@ -283,6 +342,7 @@ function WhereQueryProvider() {
     window.queryProviderCache.add("first", new FirstQueryProvider());
     window.queryProviderCache.add("count", new CountQueryProvider());
     window.queryProviderCache.add("groupby", new GroupByQueryProvider());
+    window.queryProviderCache.add("join", new JoinQueryProvider());
     window.queryProviderCache.add("last", new LastQueryProvider());
     window.queryProviderCache.add("orderbydesc", new OrderByDescQueryProvider());
     window.queryProviderCache.add("orderby", new OrderByQueryProvider());
@@ -292,6 +352,7 @@ function WhereQueryProvider() {
     window.queryProviderCache.add("sum", new SumQueryProvider());
     window.queryProviderCache.add("take", new TakeQueryProvider());
     window.queryProviderCache.add("where", new WhereQueryProvider());
+    window.queryProviderCache.add("union", new UnionQueryProvider());
 }());
 
 window.T = function () { }
@@ -335,6 +396,11 @@ function Queryable(collection) {
         return context.compile();
     }
 
+    this.first = function (expression) {
+        context.addCommand("first", expression).compile();
+        return this;
+    }
+
     this.groupBy = function (keyExpression, valueExpression) {
         var expression = { key: keyExpression };
         if (valueExpression)
@@ -343,8 +409,8 @@ function Queryable(collection) {
         return this;
     }
 
-    this.first = function (expression) {
-        context.addCommand("first", expression).compile();
+    this.join = function (inner, outerKeySelector, innerKeySelector, resultSelector) {
+        context.addCommand("join", { inner: inner, outerKeySelector: outerKeySelector, innerKeySelector: innerKeySelector, resultSelector: resultSelector });
         return this;
     }
 
@@ -386,17 +452,22 @@ function Queryable(collection) {
         return this;
     }
 
-    this.where = function (expression) {
-        context.addCommand("where", expression);
-        return this;
-    }
-
     this.toArray = function () {
         return context.compile();
     }
 
     this.toJsonString = function () {
         return JSON.stringify(this.compile());
+    }
+
+    this.union = function (collection) {
+        context.addCommand("union", collection);
+        return this;
+    }
+
+    this.where = function (expression) {
+        context.addCommand("where", expression);
+        return this;
     }
 
     return {
@@ -411,6 +482,7 @@ function Queryable(collection) {
         count: this.count,
         first: this.first,
         groupBy: this.groupBy,
+        join: this.join,
         last: this.last,
         orderBy: this.orderBy,
         orderByDesc: this.orderByDesc,
@@ -421,6 +493,7 @@ function Queryable(collection) {
         take: this.take,
         toArray: this.toArray,
         toJsonString: this.toJsonString,
+        union: this.union,
         where: this.where
     }
 }
