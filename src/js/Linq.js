@@ -1,3 +1,7 @@
+Array.prototype.asQueryable = function () {
+    return new Queryable(this);
+}
+
 Object.prototype.getHashCode = function () {
     var stringify = JSON.stringify(this);
     return stringify;
@@ -375,11 +379,9 @@ function Queryable(collection) {
         var queryProvider = window.queryProviderCache.provider("aggregate");
         var _expression = {};
         if (arguments.length < 2)
-            queryProvider.compile(context.compile(), arguments[0]);
+            return queryProvider.compile(context.compile(), arguments[0]);
         else
-            queryProvider.compile(context.compile(), arguments[1], arguments[0]);
-        
-        return this;
+            return queryProvider.compile(context.compile(), arguments[1], arguments[0]);        
     }
 
     this.compile = function () {
@@ -397,8 +399,7 @@ function Queryable(collection) {
     }
 
     this.first = function (expression) {
-        context.addCommand("first", expression).compile();
-        return this;
+        return context.addCommand("first", expression).compile();        
     }
 
     this.groupBy = function (keyExpression, valueExpression) {
@@ -415,8 +416,7 @@ function Queryable(collection) {
     }
 
     this.last = function (expression) {
-        context.addCommand("last", expression).compile();
-        return this;
+        return context.addCommand("last", expression).compile();
     }
 
     this.orderBy = function (expression) {
@@ -443,8 +443,7 @@ function Queryable(collection) {
     }
 
     this.sum = function (expression) {
-        context.addCommand("sum", expression || null).compile();
-        return this;
+        return context.addCommand("sum", expression || null).compile();        
     }
 
     this.take = function (expression) {
