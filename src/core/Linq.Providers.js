@@ -1,6 +1,6 @@
-﻿
+
 (function (window) {
-   
+
     function AggregateQueryProvider() {
         var context = this;
         this.compile = function (input, expression, type) {
@@ -61,52 +61,6 @@
         };
     }
 
-    function ObjectEqualitor() {
-
-        this.equals = function (a, b, expression) {
-            return a.hashCode() === b.hashCode();
-        }
-        return {
-            equals: this.equals
-        }
-    }
-
-    function ComplexEqualitor(expression) {
-        var expression = expression;
-        var context = this;
-
-        this.compare = function (a, b, properties) {
-            for (var p = 0; p < properties.length; ++p) {
-                var i = properties[p];
-                if (typeof a[i] === "object" && !context.compare(a[i], b[i]))
-                    return false;
-                if (a[i] !== b[i])
-                    return false;
-            }
-            return true;
-        }
-
-        this.equals = function (a, b, expression) {
-            var valueA = expression(a);
-            var valueB = expression(b);
-            if (typeof valueA === "object")
-                return context.compare(valueA, valueB, Object.getOwnPropertyNames(valueA));
-            return valueA === valueB;
-        }
-        return {
-            equals: this.equals
-        }
-    }
-
-    function SampleEqualitor() {
-        this.equals = function (a, b, expression) {
-            return expression(a) === expression(b);
-        }
-        return {
-            equals: this.equals
-        }
-    }
-
     function DistinctQueryProvider() {
 
         var onlyComplexyUnique = function (expression, equalitor) {
@@ -131,7 +85,7 @@
             var isObject = typeof input[0] === "object";
             if (expression == null && isObject)
                 equalitor = new ObjectEqualitor();
-            if (expression == null)
+            else if (expression == null)
                 equalitor = new SampleEqualitor();
             else
                 equalitor = typeof expression(input[0]) === "object" ? new ComplexEqualitor() : new SampleEqualitor();
