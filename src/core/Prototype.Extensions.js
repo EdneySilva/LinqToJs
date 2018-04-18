@@ -1,48 +1,4 @@
-﻿(function (window) {
-
-    String.prototype.hashCode = function () {
-        var s = this;
-        var h = 0, l = s.length, i = 0;
-        if (l > 0)
-            while (i < l)
-                h = (h << 5) - h + s.charCodeAt(i++) | 0;
-        return h;
-    }
-
-    Object.prototype.hashCode = function () {
-
-        var hash = function (value) {
-            var hashValue = 0;
-            var properties = Object.getOwnPropertyNames(value);
-            for (var p = 0; p < properties.length; p++) {
-                var i = properties[p];
-                if (typeof value[i] === "function" || value[i] === null)
-                    continue;
-                else if (typeof value[i] === "object")
-                    hashValue += value[i].hashCode(value[i]);
-                else
-                    hashValue += value[i].toString().hashCode();
-            }
-            return hashValue;
-        }
-        return hash(this);
-    }
-
-    Array.prototype.hashCode = function () {
-        var hash = function (value) {
-            var hashValue = 0;
-            for (var i = 0; i < value.length; i++) {
-                if (typeof value[i] === "function" || value[i] === null)
-                    continue;
-                else if (typeof value[i] === "object")
-                    hashValue += value[i].hashCode(value[i]);
-                else
-                    hashValue += value[i].toString().hashCode();
-            }
-            return hashValue;
-        }
-        return hash(this);
-    }
+(function (window) {
 
     var oldJoin = Array.prototype.join;
 
