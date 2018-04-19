@@ -10,7 +10,7 @@
     },
     Array.prototype.all = function (expression) {
             return this.asQueryable().all(expression);
-        }
+    }
     Array.prototype.any = function (expression) {
         return this.asQueryable().any(expression);
     }
