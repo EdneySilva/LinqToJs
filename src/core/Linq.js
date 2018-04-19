@@ -41,6 +41,7 @@ function Queryable(collection) {
     var context = this;
     this.collection = collection;
     this.commands = [];
+    this.expressionTree = new ExpressionTree();
 
     this.addCommand = function (command, expression) {
         var queryProvider = window.queryProviderCache.provider(command);
@@ -59,7 +60,7 @@ function Queryable(collection) {
     }
 
     this.all = function (expression) {
-        return context.addCommand("all", expression).compile();
+        return context.addCommand("all", expression || null).compile();
     }
 
     this.any = function (expression) {
@@ -107,11 +108,11 @@ function Queryable(collection) {
     }
 
     this.orderBy = function (expression) {
-        return OrderedQueryable.call(this, context, "orderby", { dir: "asc", expression: expression });
+        return OrderedQueryable.call(this, context, "orderby", { dir: "asc", expression: expression || null });
     }
 
     this.orderByDesc = function (expression) {
-        return OrderedQueryable.call(this, context, "orderby", { dir: "desc", expression: expression });
+        return OrderedQueryable.call(this, context, "orderby", { dir: "desc", expression: expression || null });
     }
 
     this.select = function (expression) {
@@ -157,6 +158,13 @@ function Queryable(collection) {
     }
 
     return {
+        /**
+        * Aggregate the collection values
+        * @return {T} return <T> value
+        * @param {T=} type this type of the aggregation return, if no value were supplied the method will infere the type of collection
+        *           and the first seed interaction will assume the first collection value.
+        * @param {Function} term An itemName,
+        */
         aggregate: function (type, expression) { return context.aggregate.apply(this, arguments); },
         all: this.all,
         any: this.any,
@@ -216,3 +224,21 @@ var OrderedQueryable = Queryable.extends(function (context, provider, expression
         thenByDesc: this.thenByDesc
     }
 });
+
+var ExpressionTree = function () {
+
+    this.expressionGroup = new GroupDictionary();
+
+    this.add = function (providerName, expression) {
+        //this.expressionGroup.add(providerName, expression);
+        var queryProvider = window.queryProviderCache.provider(command);
+        this.commands.push({ query: queryProvider, expressionBody: expression });
+        return this;
+    }
+
+    this.compile = function () {
+
+    }
+
+    return this;
+}
