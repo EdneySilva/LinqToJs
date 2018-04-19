@@ -1,0 +1,85 @@
+(function () {
+    window.registerTest("any", function () {
+        it("When we call [1].any(), it should is true", function (descriptor) {
+            descriptor.given([1]).when(function (p1) {
+                return p1.any()
+            }).then(function (value, assert) {
+                return assert.isTrue(value);
+            });
+        });
+
+        it("When we call [].any(), it should is false", function (descriptor) {
+            descriptor.given([]).when(function (p1) {
+                return p1.any()
+            }).then(function (value, assert) {
+                return assert.isFalse(value);
+            });
+        });
+
+        it("When we call [].any(o => o), it should is false", function (descriptor) {
+            descriptor.given([]).when(function (p1) {
+                return p1.any();
+            }).then(function (value, assert) {
+                return assert.isFalse(value);
+            });
+        });
+
+        it("When we call [1, 2, 3, 1, 1, 3, 2, 2, 1, 2].any(a => a == 1), it has return true", function (descriptor) {
+            descriptor.given([1, 2, 3, 1, 1, 3, 2, 2, 1, 2]).when(function (p1) {
+                return p1.any(a => a == 1);
+            }).then(function (value, assert) {
+                return assert.equals(value, true);
+            });
+        });
+
+        it("When we call [{ Name: 'Edney' }].any(), it has return true", function (descriptor) {
+            descriptor.given([{ Name: 'Edney' }]).when(function (p1) {
+                return p1.any();
+            }).then(function (value, assert) {
+                return assert.equals(value, true);
+            });
+        });
+
+        it("When we call [{ Name: 'Edney' }, { Name: 'Adriane' }].any(a => a.Name == 'Edney'), it has return true", function (descriptor) {
+            descriptor.given([{ Name: 'Edney' }, { Name: 'Adriane' }]).when(function (p1) {
+                return p1.any(a => a.Name == "Edney");
+            }).then(function (value, assert) {
+                return assert.equals(value, true);
+            });
+        });
+
+        it("When we call [{ Name: 'Edney', Age: 28 }, { Name: 'Adriane', Age: 30 }].any(a => a.Age > 20 && a.Age < 30), it has return true", function (descriptor) {
+            descriptor.given([{ Name: 'Edney', Age: 28 }, { Name: 'Adriane', Age: 30 }]).when(function (p1) {
+                return p1.any(a => a.Age > 20 && a.Age < 30);
+            }).then(function (value, assert) {
+                return assert.isTrue(value);
+            });
+        });
+
+        it("When we call [{ Name: 'Edney', Age: 28 }, { Name: 'Adriane', Age: 30 }].any(a => a.Age > 30 ), it has return false", function (descriptor) {
+            descriptor.given([{ Name: 'Edney', Age: 28 }, { Name: 'Adriane', Age: 30 }]).when(function (p1) {
+                return p1.any(a => a.Age > 30);
+            }).then(function (value, assert) {
+                return assert.isFalse(value);
+            });
+        });
+
+        it("When give [1, 2, 3, 4, 5].any(anyfunction) [i == 3], it has return true", function (descriptor) {
+            function anyFunction(e) {
+                return e == 3;
+            }
+            descriptor.given([1, 2, 3, 4, 5], anyFunction)
+                .when((p1, anyfunction) => p1.any(anyfunction))
+                .then((value, assert) => assert.isTrue(value));
+        });
+
+        it("When give [1, 2, 3, 4, 5].any(anyfunction) [i < 0], it has return false", function (descriptor) {
+            function anyFunction(e) {
+                return e < 0;
+            }
+            descriptor.given([1, 2, 3, 4, 5], anyFunction)
+                .when((p1, anyfunction) => p1.any(anyfunction))
+                .then((value, assert) => assert.isFalse(value));
+        });
+    })
+})();
