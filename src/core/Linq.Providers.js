@@ -20,8 +20,23 @@
     }
 
     function AllQueryProvider() {
-
+        var createExpression = function (input, expression) {
+            if (expression == null)
+                expression = (function () {
+                    if (typeof input[0] === "object") {
+                        var hashCode = Object.hashCode(input[0]);
+                        return (o) => {
+                            return Object.hashCode(o) === hashCode;
+                        };
+                    }
+                    return (o) => { return o == input[0]; }
+                })();
+            return expression;
+        }
         this.compile = function (input, expression) {
+            if (input.length == 0)
+                return false;
+            expression = createExpression(input, expression);
             for (var i = 0; i < input.length; i++)
                 if (!expression(input[i]))
                     return false;
@@ -216,12 +231,28 @@
 
         this.compile = function (input, expression) {
             var expressions = expression();
+
+            function sampleExpression(object) {
+                return object;
+            }
+
+            function objectExpression(object) {
+                return Object.hashCode(object);
+            }
+
+            function getComparer(value) {
+                if (typeof value !== "object")
+                    return sampleExpression;
+                return objectExpression;
+            }
+
             function sortByMultipleKey(keys) {
                 return function (a, b) {
                     if (keys.length == 0)
                         return 0;
                     key = keys[0];
-                    var result = algorithims[key.dir](a, b, key.expression);
+                    expression = key.expression == null ? getComparer(a) : key.expression;
+                    var result = algorithims[key.dir](a, b, expression);
                     if (result != 0)
                         return result;
                     return sortByMultipleKey(keys.slice(1))(a, b);
